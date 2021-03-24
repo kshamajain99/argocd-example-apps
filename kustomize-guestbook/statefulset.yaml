@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-main 
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  selector:
+    matchLabels:
+      app: nginx # has to match .spec.template.metadata.labels
+  serviceName: "nginx"
+  replicas: 1 
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 1
+          periodSeconds: 120
+          successThreshold: 1
+          timeoutSeconds: 5
+      - name: nginx2
+        image: alpine:latest
+        command: [sh, -c]
+        args: ["echo sleeping for 600s; sleep 600; echo done"]
